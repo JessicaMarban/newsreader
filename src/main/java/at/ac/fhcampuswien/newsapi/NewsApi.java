@@ -1,6 +1,7 @@
 package at.ac.fhcampuswien.newsapi;
 
 
+import at.ac.fhcampuswien.newsanalyzer.ctrl.NewsApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import at.ac.fhcampuswien.newsapi.beans.NewsResponse;
@@ -18,10 +19,10 @@ public class NewsApi {
 
     /**
      * For detailed documentation of the API see: https://newsapi.org/docs
-     *
+     * <p>
      * %s is a filler for endpoint like top-headlines, everything (see /newsapi/enums/Endpoint)
      * q=%s is a filler for specified query
-     *
+     * <p>
      * Example URL: https://newsapi.org/v2/top-headlines?country=us&apiKey=myKey
      */
     public static final String NEWS_API_URL = "http://newsapi.org/v2/%s?q=%s&apiKey=%s";
@@ -114,7 +115,7 @@ public class NewsApi {
         this.endpoint = endpoint;
     }
 
-    protected String requestData() {
+    protected String requestData() throws NewsApiException {
         String url = buildURL();
         System.out.println("URL: " + url);
         URL obj = null;
@@ -122,12 +123,11 @@ public class NewsApi {
             obj = new URL(url);
         } catch (MalformedURLException e) {
             // TODO improve ErrorHandling
-           // e.printStackTrace();
+            // e.printStackTrace();
             System.err.println(e.getMessage());
-            return null;
+            throw new NewsApiException(e.getMessage());
         }
-        //con is null - so we can use the try and catch
-        HttpURLConnection con = null;
+        HttpURLConnection con;
         StringBuilder response = new StringBuilder();
         try {
             con = (HttpURLConnection) obj.openConnection();
@@ -139,17 +139,15 @@ public class NewsApi {
             in.close();
         } catch (IOException e) {
             // TODO improve ErrorHandling
-           // System.out.println("Error "+e.getMessage());
+            // System.out.println("Error "+e.getMessage());
             System.err.println(e.getMessage());
-            //HTTPConnection needs to be closed
-            if(con != null) {
-                con.disconnect();
-            }
+            throw new NewsApiException(e.getMessage());
         }
+
         return response.toString();
     }
 
-    protected String buildURL() {
+    protected String buildURL() throws NewsApiException {
         // TODO ErrorHandling
 
         try {
@@ -194,25 +192,26 @@ public class NewsApi {
             return sb.toString();
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            return null;
+            throw new NewsApiException(e.getMessage());
         }
     }
 
 
-    public NewsResponse getNews() {
+    public NewsResponse getNews() throws NewsApiException {
         NewsResponse newsReponse = null;
         String jsonResponse = requestData();
-        if(jsonResponse != null && !jsonResponse.isEmpty()){
+        if (jsonResponse != null && !jsonResponse.isEmpty()) {
 
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 newsReponse = objectMapper.readValue(jsonResponse, NewsResponse.class);
-                if(!"ok".equals(newsReponse.getStatus())){
-                    System.out.println("Error: "+newsReponse.getStatus());
+                if (!"ok".equals(newsReponse.getStatus())) {
+                    System.out.println("Error: " + newsReponse.getStatus());
                 }
             } catch (JsonProcessingException e) {
                 //System.out.println("Error: "+e.getMessage());
                 System.err.println(e.getMessage());
+                throw new NewsApiException(e.getMessage());
             }
         }
         //TODO improve Errorhandling
