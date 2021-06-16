@@ -19,96 +19,93 @@ import java.util.stream.Collectors;
 
 public class Controller {
 
-	public static final String APIKEY = "4e65418020314562b922f4f33fcd2cd9";  //TODO add your api key
+    public static final String APIKEY = "4e65418020314562b922f4f33fcd2cd9";  //TODO add your api key
 
-	public void process(NewsApi newsApi) {
-		System.out.println("Start process");
+    public void process(NewsApi newsApi) {
+        System.out.println("Start process");
 
-		NewsResponse newsResponse = null;
-		List<Article> articles = null;
+        NewsResponse newsResponse = null;
+        List<Article> articles = null;
 
-		//TODO implement Error handling
-		try{
-			newsResponse = newsApi.getNews();
-			articles = newsResponse.getArticles();
-		} catch(Exception e) {
-			System.err.println(e.getMessage());
-		}
+        //TODO implement Error handling
+        try {
+            newsResponse = newsApi.getNews();
+            articles = newsResponse.getArticles();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
 
-		//TODO load the news based on the parameters
-		if(newsResponse != null && !articles.isEmpty()) {
-			articles = newsResponse.getArticles();
-			articles.stream().forEach(article -> System.out.println(article.toString()));
-
-
-			//TODO implement methods for analysis - task 5
-
-			//5a
-			System.out.println("Number of articles: " + articles.size());
+        //TODO load the news based on the parameters
+        if (newsResponse != null && !articles.isEmpty()) {
+            articles = newsResponse.getArticles();
+            articles.stream().forEach(article -> System.out.println(article.toString()));
 
 
-			articles.stream().forEach(article -> System.out.println(article.getSource().getName()));
+            //TODO implement methods for analysis - task 5
 
-			//5.b get the name of provider and the number of articles
-			String provider = articles.stream()
-					.collect(Collectors.groupingBy(article -> article.getSource().getName(), Collectors.counting()))
-					.entrySet()
-					.stream()
-					.max(Comparator.comparingInt(t -> t.getValue().intValue())).get().getKey();
-			//max compares values and then gets the name aka the key
-
-			System.out.println("The provider with the most articles is " + provider);
+            //5a
+            System.out.println("\nNumber of articles: " + articles.size() + "\n");
 
 
-			//5.c
-			List shortestName = articles.stream()
-					.map(Article::getAuthor)
-					.filter(Objects::nonNull)
-					.sorted(Comparator.comparing(String::length))
-					.collect(Collectors.toList());
+            //articles.stream().forEach(article -> System.out.println(article.getSource().getName()));
 
-			System.out.println(shortestName.get(0));
+            //5.b get the name of provider and the number of articles
+            String provider = articles.stream()
+                    .collect(Collectors.groupingBy(article -> article.getSource().getName(), Collectors.counting()))
+                    .entrySet()
+                    .stream()
+                    .max(Comparator.comparingInt(t -> t.getValue().intValue())).get().getKey();
+            //max compares values and then gets the name aka the key
 
-			//5d
-			System.out.println("SORTED LIST\n");
-			List<Article> result = articles.stream().sorted((object1, object2) -> object1.getTitle().compareTo(object2.getTitle())).collect(Collectors.toList());
-			result.stream().forEach(article -> System.out.println("\t" + article.toString() + "\n"));
+            System.out.println("\n \n The provider with the most articles is " + provider + "\n \n");
 
 
-			// if we find an article we will save it and download it - otherwise we tell user we couldn't find news
-			if (result != null) {
-				System.out.println(result.get(0));
-			}
+            //5.c
+            List shortestName = articles.stream()
+                    .map(Article::getAuthor)
+                    .filter(Objects::nonNull)
+                    .sorted(Comparator.comparing(String::length))
+                    .collect(Collectors.toList());
 
-				for (Article downloadedArticle : articles) {
-					try {
-						URL url = new URL(downloadedArticle.getUrl());
-						InputStream input = url.openStream();
-						BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-						//writer creates a new html file - substring is the number of characters that are gonna be the name of the file
-						BufferedWriter writer = new BufferedWriter(new FileWriter(downloadedArticle.getTitle().substring(0, 5) + ".html"));
-						String line;
-						while ((line = reader.readLine()) != null) {
-							writer.write(line);
-							writer.newLine();
-						}
-						reader.close();
-						writer.close();
-					} catch (Exception e) {
-						System.err.println(e.getMessage());
-					}
-				}
-			} else {
-				System.err.println("No news for you, go home");
-			}
+            System.out.println("\n The shortest author name is " + shortestName.get(0) + "\n");
+
+            //5d sort the list after the longest name alphabetically
+            System.out.println("SORTED LIST\n");
+            List<Article> result = articles.stream().sorted((object1, object2) -> object1.getTitle().compareTo(object2.getTitle())).collect(Collectors.toList());
+            result.stream().forEach(article -> System.out.println("\n" + article.toString() + "\n"));
+
+            if (result != null) {
+                System.out.println(result.get(0));
+            }
+
+            // extension: download all articles
+            for (Article downloadedArticle : articles) {
+                try {
+                    URL url = new URL(downloadedArticle.getUrl());
+                    InputStream input = url.openStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+                    //writer creates a new html file - substring is the number of characters that are gonna be the name of the file
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(downloadedArticle.getTitle().substring(0, 5) + ".html"));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        writer.write(line);
+                    }
+                    reader.close();
+                    writer.close();
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        } else {
+            System.err.println("No news for you, go home");
+        }
+
+        System.out.println("End process");
+    }
 
 
-		System.out.println("End process");
-	}
-	
+    public Object getData() {
 
-	public Object getData() {
-		
-		return null;
-	}
+        return null;
+    }
 }

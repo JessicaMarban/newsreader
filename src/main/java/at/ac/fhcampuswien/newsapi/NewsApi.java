@@ -145,7 +145,6 @@ public class NewsApi {
             if(con != null) {
                 con.disconnect();
             }
-
         }
         return response.toString();
     }
